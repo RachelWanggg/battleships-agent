@@ -295,7 +295,7 @@
         <p class="lede">
           Use this as the project cockpit during local preparation and the official
           3-hour window. Keep the core loop simple: build, run, log, analyze, tune,
-          repeat.
+          repeat. Copyable prompts are also stored in docs/prompts.md.
         </p>
       </header>
 
@@ -303,8 +303,9 @@
         <article class="panel">
           <h2>Operating Rules</h2>
           <ul class="rule-list">
-            <li>Do not start official GitHub OAuth or challenge flow until the local agent is ready.</li>
-            <li>Baseline success means a full 15-game Attempt without disqualification.</li>
+            <li>Baseline local code is ready, Agent Auth is approved, and `npm test` passes.</li>
+            <li>Baseline success is achieved: one full 15-game Attempt completed without disqualification.</li>
+            <li>Latest baseline score is 93 with 4 wins, 11 losses, and hit differential -16.</li>
             <li>Every request needs a fresh JWT with the full capability list.</li>
             <li>Never repeat a shot, shoot off-board, or submit an invalid fleet.</li>
             <li>Make every strategy change measurable through telemetry.</li>
@@ -345,7 +346,7 @@
       <section class="phase-grid" aria-label="Phases">
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge active">Phase 0</span>
+            <span class="badge done">Phase 0</span>
             <strong>Local Prep</strong>
             <span class="time">Before timer</span>
           </div>
@@ -360,8 +361,8 @@
               <label><input type="checkbox" checked /> PRD exists</label>
               <label><input type="checkbox" checked /> README exists</label>
               <label><input type="checkbox" checked /> Sensitive files ignored</label>
-              <label><input type="checkbox" /> TypeScript scaffold exists</label>
-              <label><input type="checkbox" /> Scripts planned</label>
+              <label><input type="checkbox" checked /> TypeScript scaffold exists</label>
+              <label><input type="checkbox" checked /> Scripts planned</label>
             </div>
           </div>
           <aside class="phase-side">
@@ -371,32 +372,35 @@
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>Repo has a clear plan, no sensitive files, and a ready implementation path.</span>
+              <span>Done: TypeScript scaffold, package scripts, and local tests are in place.</span>
             </div>
           </aside>
         </article>
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge todo">Phase 1</span>
+            <span class="badge done">Phase 1</span>
             <strong>Baseline Agent</strong>
             <span class="time">0:00-0:50</span>
           </div>
           <div class="phase-body">
             <h2>Make the agent complete one Attempt</h2>
             <ul>
-              <li>Implement Agent Auth persistence and REST client.</li>
-              <li>Implement legal random placement and safe shot selection.</li>
-              <li>Handle all `responseType` variants.</li>
-              <li>Save request IDs and terminal result.</li>
+              <li>Agent Auth persistence and the typed REST client are implemented locally.</li>
+              <li>Legal random placement and safe shot selection are implemented.</li>
+              <li>The loop handles all `responseType` variants in mocked integration tests.</li>
+              <li>Official baseline Attempt completed: finalScore 93, wins 4, losses 11.</li>
             </ul>
             <div class="checklist" aria-label="Phase 1 checklist">
-              <label><input type="checkbox" /> Persistent auth storage</label>
-              <label><input type="checkbox" /> Fresh JWT per request</label>
-              <label><input type="checkbox" /> Legal fleet generator</label>
-              <label><input type="checkbox" /> Safe non-repeating shots</label>
-              <label><input type="checkbox" /> Full responseType loop</label>
-              <label><input type="checkbox" /> Telemetry written</label>
+              <label><input type="checkbox" checked /> Persistent auth storage</label>
+              <label><input type="checkbox" checked /> Agent ID saved and reused</label>
+              <label><input type="checkbox" checked /> Fresh JWT per request</label>
+              <label><input type="checkbox" checked /> Empty-body endpoints omit JSON content type</label>
+              <label><input type="checkbox" checked /> Legal fleet generator</label>
+              <label><input type="checkbox" checked /> Safe non-repeating shots</label>
+              <label><input type="checkbox" checked /> Full responseType loop</label>
+              <label><input type="checkbox" checked /> Telemetry written</label>
+              <label><input type="checkbox" checked /> Real Attempt reaches ATTEMPT_COMPLETED</label>
             </div>
           </div>
           <aside class="phase-side">
@@ -406,18 +410,18 @@
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>One full Attempt reaches `ATTEMPT_COMPLETED`, or any failure is logged clearly enough to fix.</span>
+              <span>Done: Attempt `948fcf8b-f66e-40c7-83ca-7b31ad6587ec` reached `ATTEMPT_COMPLETED` with score 93.</span>
             </div>
             <div class="gate">
               <strong>Test gate</strong>
-              <span>Unit tests for placement and shot validation pass.</span>
+              <span>Passing locally: 13 tests cover placement, shots, auth reuse, REST headers, non-blocking telemetry, and mocked response loop.</span>
             </div>
           </aside>
         </article>
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge todo">Phase 2</span>
+            <span class="badge active">Phase 2</span>
             <strong>Better Shooting</strong>
             <span class="time">0:50-1:30</span>
           </div>
@@ -440,7 +444,7 @@
           <aside class="phase-side">
             <div class="gate">
               <strong>Enter when</strong>
-              <span>Baseline loop is stable enough to complete or debug a real Attempt.</span>
+              <span>Entered: baseline Attempt completed; use score 93 as comparison baseline.</span>
             </div>
             <div class="gate">
               <strong>Exit when</strong>
@@ -571,9 +575,11 @@
         <article class="panel">
           <h2>Tests Worth Doing</h2>
           <ul class="compact-list">
-            <li>Unit: placement legality, shot legality, probability targeting, config load/save.</li>
-            <li>Mocked integration: responseType loop, fresh JWT per request, empty-body headers.</li>
-            <li>Real server: health check, rules call after approval, one full Attempt.</li>
+            <li>Done locally: placement legality, shot legality, fresh JWT per request, empty-body headers, auth reuse.</li>
+            <li>Done locally: mocked integration for responseType loop, active-attempt resume, completion, and disqualification stop.</li>
+            <li>Done on real server: Agent Auth approval and one full baseline Attempt reaching `ATTEMPT_COMPLETED`.</li>
+            <li>Next strategy tests: probability targeting and config load/save.</li>
+            <li>Next real-server check: run another Attempt after each strategy change and compare against score 93.</li>
           </ul>
         </article>
         <article class="panel">
@@ -590,6 +596,14 @@
       <section class="prompt-bank" aria-label="Prompt bank">
         <article class="prompt">
           <div class="prompt-head">
+            <h2>Official Prompt Location</h2>
+            <span>Use for source-of-truth challenge details</span>
+          </div>
+          <pre><code>Open docs/prompts.md and copy "Official TypeScript Prompt" when a new chat needs the full official challenge instructions.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
             <h2>Prompt 0: Continue From PRD</h2>
             <span>Use at the start of implementation</span>
           </div>
@@ -601,7 +615,7 @@
             <h2>Prompt 1: Build Baseline</h2>
             <span>Use for Phase 1</span>
           </div>
-          <pre><code>Implement the baseline TypeScript Battleships agent described in docs/PRD.md: persistent Agent Auth storage, fresh JWT per request, typed REST client, legal random placement, safe non-repeating shooting, responseType-driven game loop, and telemetry. Do not optimize strategy yet. First priority is avoiding disqualification and completing one full Attempt.</code></pre>
+          <pre><code>Implement the baseline TypeScript Battleships agent described in docs/PRD.md and docs/prompts.md: persistent Agent Auth storage, fresh JWT per request, typed REST client, legal random placement, safe non-repeating shooting, responseType-driven game loop, and telemetry. Do not optimize strategy yet. First priority is avoiding disqualification and completing one full Attempt.</code></pre>
         </article>
 
         <article class="prompt">

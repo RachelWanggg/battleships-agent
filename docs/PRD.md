@@ -117,6 +117,7 @@ data/
 docs/
   PRD.md           This document
   progress.html    Phase board, checklist, and prompt bank
+  prompts.md       Official prompt and reusable phase prompts
 ```
 
 Sensitive local files must not be committed:
@@ -259,6 +260,15 @@ During the official 3 hours:
 
 The agent should advance phases only when the exit criteria are met. If a phase is blocked, fix the blocker before optimizing strategy.
 
+Current local status:
+
+- Baseline TypeScript code is implemented and covered by local tests.
+- `@auth/agent` SDK is installed and the adapter matches the installed SDK surface.
+- Agent Auth approval is complete locally; `.agent-auth.json` and `agent-id.txt` exist and are ignored.
+- `npm test` passes locally with placement, shooting, REST request, auth reuse, non-blocking telemetry, and mocked response loop coverage.
+- One real full Attempt reached `ATTEMPT_COMPLETED`.
+- Latest baseline result: finalScore `93`, wins `4`, losses `11`, hitDifferential `-16`, attemptId `948fcf8b-f66e-40c7-83ca-7b31ad6587ec`.
+
 ### Phase 0: Local Prep
 
 Entry criteria:
@@ -272,8 +282,8 @@ Checklist:
 - [x] Create PRD/runbook.
 - [x] Create README entry point.
 - [x] Add ignore rules for credentials and logs.
-- [ ] Scaffold TypeScript project.
-- [ ] Add package scripts.
+- [x] Scaffold TypeScript project.
+- [x] Add package scripts.
 
 Exit criteria:
 
@@ -290,21 +300,21 @@ Entry criteria:
 
 Checklist:
 
-- [ ] Persistent Agent Auth storage implemented.
-- [ ] Agent ID is saved and reused.
-- [ ] Fresh JWT is minted per request.
-- [ ] Empty-body endpoints omit JSON content type.
-- [ ] REST client handles non-2xx and logs `x-request-id`.
-- [ ] Fleet generator always returns legal placements.
-- [ ] Shot selector never repeats or shoots off-board.
-- [ ] Game loop handles `MOVE_REQUIRED`, `GAME_COMPLETED`, `ATTEMPT_COMPLETED`, and `ATTEMPT_DISQUALIFIED`.
-- [ ] Telemetry file is written.
+- [x] Persistent Agent Auth storage implemented.
+- [x] Agent ID is saved and reused.
+- [x] Fresh JWT is minted per request.
+- [x] Empty-body endpoints omit JSON content type.
+- [x] REST client handles non-2xx and logs `x-request-id`.
+- [x] Fleet generator always returns legal placements.
+- [x] Shot selector never repeats or shoots off-board.
+- [x] Game loop handles `MOVE_REQUIRED`, `GAME_COMPLETED`, `ATTEMPT_COMPLETED`, and `ATTEMPT_DISQUALIFIED`.
+- [x] Telemetry file is written.
 
 Exit criteria:
 
-- One full Attempt reaches `ATTEMPT_COMPLETED`.
-- If it fails, the failure reason is logged clearly enough to fix.
-- No known disqualification risk remains in local validation.
+- [x] One full Attempt reaches `ATTEMPT_COMPLETED`.
+- [x] Failure reasons are logged clearly enough to fix future runs.
+- [x] No known disqualification risk remains in local validation.
 
 ### Phase 2: Better Shooting
 
@@ -312,6 +322,7 @@ Entry criteria:
 
 - Baseline Attempt completes or the only blocker is a known server/auth issue.
 - Shot history shape is understood from real or mocked responses.
+- Baseline score exists for comparison: finalScore `93`.
 
 Checklist:
 
