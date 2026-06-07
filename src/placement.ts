@@ -6,6 +6,8 @@ import type { StrategyConfig } from "./types.js";
 export type OpponentShotHeatmap = {
   counts: number[][];
   weights: number[][];
+  countsByOpponent: Record<string, number[][]>;
+  weightsByOpponent: Record<string, number[][]>;
   totalShots: number;
   sourceFiles: string[];
 };
@@ -109,9 +111,11 @@ export function generateRandomFleet(random: () => number = Math.random): ShipPla
 
 export function generateAdaptiveFleet(
   config: StrategyConfig,
+  opponentId?: string,
   random: () => number = Math.random
 ): ShipPlacement[] {
   const candidateCount = Math.max(1, Math.floor(config.placement.candidateCount));
+  const effectiveConfig = configWithOpponentPlacementWeights(config, opponentId);
   let bestFleet: ShipPlacement[] | undefined;
   let bestScore: FleetScore | undefined;
 
@@ -122,7 +126,7 @@ export function generateAdaptiveFleet(
       continue;
     }
 
-    const score = scoreFleetCandidate(fleet, config, random);
+    const score = scoreFleetCandidate(fleet, effectiveConfig, random);
     if (!bestScore || score.total < bestScore.total) {
       bestFleet = fleet;
       bestScore = score;
@@ -177,6 +181,7 @@ export async function loadOpponentShotHeatmap(
 
   const sourceFiles = entries.filter((entry) => entry.endsWith(".jsonl")).sort();
   const counts = createMatrix();
+  const countsByOpponent: Record<string, number[][]> = {};
   let totalShots = 0;
 
   for (const fileName of sourceFiles) {
@@ -210,6 +215,8 @@ export async function loadOpponentShotHeatmap(
 
         seen.add(key);
         counts[coord.y][coord.x] += 1;
+        countsByOpponent[opponentId] ??= createMatrix();
+        countsByOpponent[opponentId][coord.y][coord.x] += 1;
         totalShots += 1;
       }
     }
@@ -218,6 +225,8 @@ export async function loadOpponentShotHeatmap(
   return {
     counts,
     weights: normalizeHeatmap(counts),
+    countsByOpponent,
+    weightsByOpponent: normalizeHeatmapsByOpponent(countsByOpponent),
     totalShots,
     sourceFiles
   };
@@ -233,9 +242,31 @@ export function configWithPlacementWeights(
     placement: {
       ...config.placement,
       opponentShotWeights: heatmap.weights,
+      opponentShotWeightsByOpponent: heatmap.weightsByOpponent,
       telemetryShotCount: heatmap.totalShots,
       telemetrySourceFiles: heatmap.sourceFiles,
       updatedAt
+    }
+  };
+}
+
+export function configWithOpponentPlacementWeights(
+  config: StrategyConfig,
+  opponentId: string | undefined
+): StrategyConfig {
+  const opponentWeights = opponentId
+    ? config.placement.opponentShotWeightsByOpponent[opponentId]
+    : undefined;
+
+  if (!opponentWeights) {
+    return config;
+  }
+
+  return {
+    ...config,
+    placement: {
+      ...config.placement,
+      opponentShotWeights: opponentWeights
     }
   };
 }
@@ -302,6 +333,12 @@ function normalizeHeatmap(counts: number[][]): number[][] {
   return counts.map((row) => row.map((count) => Number((count / max).toFixed(4))));
 }
 
+function normalizeHeatmapsByOpponent(countsByOpponent: Record<string, number[][]>): Record<string, number[][]> {
+  return Object.fromEntries(
+    Object.entries(countsByOpponent).map(([opponentId, counts]) => [opponentId, normalizeHeatmap(counts)])
+  );
+}
+
 function createMatrix(): number[][] {
   return Array.from({ length: BOARD_SIZE }, () => Array.from({ length: BOARD_SIZE }, () => 0));
 }
@@ -311,6 +348,8 @@ function emptyHeatmap(sourceFiles: string[]): OpponentShotHeatmap {
   return {
     counts,
     weights: createMatrix(),
+    countsByOpponent: {},
+    weightsByOpponent: {},
     totalShots: 0,
     sourceFiles
   };

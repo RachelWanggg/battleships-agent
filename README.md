@@ -6,12 +6,27 @@ The implementation plan, constraints, strategy decisions, telemetry design, and 
 
 ## Current Status
 
-Baseline, probability-density shooting, and adaptive placement are implemented. Two full
-official Attempts have completed without disqualification.
+Baseline, probability-density shooting, global adaptive placement, and per-opponent
+adaptive placement are implemented. Five full official Attempts have completed without
+disqualification.
 
 Current best Attempt:
 
 - Result: `ATTEMPT_COMPLETED`
+- Final score: `572`
+- Wins/losses: `14` / `1`
+- Hit differential: `92`
+- Attempt ID: `c6f6d443-7bde-4a91-94ff-e25371f96d17`
+
+Previous best after per-opponent adaptive placement:
+
+- Final score: `455`
+- Wins/losses: `11` / `4`
+- Hit differential: `71`
+- Attempt ID: `1a9f2b36-dc70-4c44-a95b-49fa65452dd8`
+
+Previous best after global adaptive placement:
+
 - Final score: `448`
 - Wins/losses: `11` / `4`
 - Hit differential: `67`
@@ -36,7 +51,8 @@ The agent has:
 - Persistent Agent Auth storage through `@auth/agent` and a disk-backed KV store.
 - Fresh JWT minting per REST request with the full capability list.
 - A typed REST client for the Battleships endpoints.
-- Adaptive legal fleet placement from prior opponent shot telemetry, with local validation.
+- Adaptive legal fleet placement from prior opponent shot telemetry, with per-opponent
+  heatmaps and global fallback.
 - Safe non-repeating probability-density shooting.
 - A `responseType`-driven game loop and JSONL telemetry.
 
@@ -81,7 +97,8 @@ Telemetry is written under `data/attempts/*.jsonl`, which is ignored because it 
 
 ## Next Work
 
-Adaptive placement improved the current best from `302` to `448`. The next safe step is
-a focused telemetry review of Attempt `31935daf-c1c9-4695-bcfe-4d45235ef44a`, then one
-small measurable tuning change if the losses show a clear pattern. The updated placement
-config was built from 2,363 de-duplicated opponent shots across 6 saved telemetry files.
+Global adaptive placement improved the score from `302` to `448`, and per-opponent
+adaptive placement improved it to `455` and then `572` after another telemetry update.
+The next real-server comparison target is the current best score `572`. The updated
+placement config was built from 3,689 de-duplicated opponent shots across 8 saved
+telemetry files and stores both global and per-opponent placement heatmaps.

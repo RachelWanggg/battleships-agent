@@ -153,7 +153,7 @@ async function handleMoveRequired(
   });
 
   if (state.nextRequiredMove === "PLACE_SHIPS") {
-    const placements = generateValidatedFleet(config);
+    const placements = generateValidatedFleet(config, state.opponent.opponentId);
     const response = await client.placeShips({ placements: placements.map(toApiPlacement) });
     telemetry.write("place_ships", {
       ...requestTelemetry(response),
@@ -184,9 +184,9 @@ async function handleMoveRequired(
   return assertNever(state.nextRequiredMove);
 }
 
-function generateValidatedFleet(config: StrategyConfig): ShipPlacement[] {
+function generateValidatedFleet(config: StrategyConfig, opponentId: string): ShipPlacement[] {
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    const placements = attempt === 0 ? generateAdaptiveFleet(config) : generateRandomFleet();
+    const placements = attempt === 0 ? generateAdaptiveFleet(config, opponentId) : generateRandomFleet();
     const errors = validateFleet(placements);
     if (errors.length === 0) {
       return placements;

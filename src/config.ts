@@ -27,6 +27,7 @@ export function normalizeConfig(value: unknown): StrategyConfig {
       orientationBalanceWeight: numberOrDefault(placement.orientationBalanceWeight, 0.2),
       randomJitterWeight: numberOrDefault(placement.randomJitterWeight, 0.08),
       opponentShotWeights: normalizeWeights(placement.opponentShotWeights),
+      opponentShotWeightsByOpponent: normalizeWeightsByOpponent(placement.opponentShotWeightsByOpponent),
       telemetryShotCount: numberOrDefault(placement.telemetryShotCount, 0),
       telemetrySourceFiles: stringArrayOrDefault(placement.telemetrySourceFiles),
       updatedAt: typeof placement.updatedAt === "string" ? placement.updatedAt : null
@@ -36,6 +37,18 @@ export function normalizeConfig(value: unknown): StrategyConfig {
       huntParity: numberOrDefault(shooting.huntParity, 2)
     }
   };
+}
+
+function normalizeWeightsByOpponent(value: unknown): Record<string, number[][]> {
+  if (!isRecord(value)) {
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(value)
+      .map(([opponentId, weights]) => [opponentId, normalizeWeights(weights)] as const)
+      .filter(([, weights]) => hasNonZeroWeight(weights))
+  );
 }
 
 function normalizeWeights(value: unknown): number[][] {
@@ -55,6 +68,10 @@ function normalizeWeights(value: unknown): number[][] {
   }
 
   return rows as number[][];
+}
+
+function hasNonZeroWeight(weights: number[][]): boolean {
+  return weights.some((row) => row.some((cell) => cell > 0));
 }
 
 function emptyWeights(): number[][] {

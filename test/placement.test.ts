@@ -6,6 +6,7 @@ import test from "node:test";
 import { loadConfig, saveConfig } from "../src/config.js";
 import {
   configWithPlacementWeights,
+  configWithOpponentPlacementWeights,
   generateAdaptiveFleet,
   generateRandomFleet,
   loadOpponentShotHeatmap,
@@ -62,6 +63,9 @@ test("loadOpponentShotHeatmap de-duplicates cumulative opponent shots", async ()
     assert.equal(heatmap.counts[1][2], 1);
     assert.equal(heatmap.weights[0][0], 1);
     assert.equal(heatmap.weights[1][2], 0.5);
+    assert.equal(heatmap.weightsByOpponent["opponent-a"][0][0], 1);
+    assert.equal(heatmap.weightsByOpponent["opponent-a"][1][2], 1);
+    assert.equal(heatmap.weightsByOpponent["opponent-b"][0][0], 1);
     assert.deepEqual(heatmap.sourceFiles, ["attempt.jsonl"]);
   } finally {
     await rm(dir, { recursive: true, force: true });
@@ -123,6 +127,8 @@ test("configWithPlacementWeights persists adaptive placement weights", async () 
     const heatmap = {
       counts: zeroWeights(),
       weights: zeroWeights(),
+      countsByOpponent: {},
+      weightsByOpponent: {},
       totalShots: 12,
       sourceFiles: ["attempt-a.jsonl"]
     };
@@ -135,11 +141,57 @@ test("configWithPlacementWeights persists adaptive placement weights", async () 
 
     assert.equal(raw.placement.telemetryShotCount, 12);
     assert.equal(loaded.placement.opponentShotWeights[3][4], 0.75);
+    assert.deepEqual(loaded.placement.opponentShotWeightsByOpponent, {});
     assert.deepEqual(loaded.placement.telemetrySourceFiles, ["attempt-a.jsonl"]);
     assert.equal(loaded.placement.updatedAt, "2026-06-07T00:00:00.000Z");
   } finally {
     await rm(dir, { recursive: true, force: true });
   }
+});
+
+test("configWithPlacementWeights persists per-opponent adaptive placement weights", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "battleships-config-by-opponent-"));
+  const configPath = join(dir, "config.json");
+  try {
+    const config = testConfig();
+    const heatmap = {
+      counts: zeroWeights(),
+      weights: zeroWeights(),
+      countsByOpponent: {
+        "opponent-a": zeroWeights()
+      },
+      weightsByOpponent: {
+        "opponent-a": zeroWeights()
+      },
+      totalShots: 12,
+      sourceFiles: ["attempt-a.jsonl"]
+    };
+    heatmap.weights[3][4] = 0.75;
+    heatmap.weightsByOpponent["opponent-a"][6][7] = 1;
+
+    const updated = configWithPlacementWeights(config, heatmap, "2026-06-07T00:00:00.000Z");
+    await saveConfig(updated, configPath);
+    const loaded = await loadConfig(configPath);
+
+    assert.equal(loaded.placement.opponentShotWeights[3][4], 0.75);
+    assert.equal(loaded.placement.opponentShotWeightsByOpponent["opponent-a"][6][7], 1);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
+});
+
+test("configWithOpponentPlacementWeights uses opponent heatmap with global fallback", () => {
+  const config = testConfig();
+  config.placement.opponentShotWeights[0][0] = 0.5;
+  config.placement.opponentShotWeightsByOpponent["opponent-a"] = zeroWeights();
+  config.placement.opponentShotWeightsByOpponent["opponent-a"][2][3] = 1;
+
+  const opponentConfig = configWithOpponentPlacementWeights(config, "opponent-a");
+  const fallbackConfig = configWithOpponentPlacementWeights(config, "opponent-b");
+
+  assert.equal(opponentConfig.placement.opponentShotWeights[2][3], 1);
+  assert.equal(opponentConfig.placement.opponentShotWeights[0][0], 0);
+  assert.equal(fallbackConfig.placement.opponentShotWeights[0][0], 0.5);
 });
 
 function testConfig(): StrategyConfig {
@@ -151,6 +203,7 @@ function testConfig(): StrategyConfig {
       orientationBalanceWeight: 0.2,
       randomJitterWeight: 0.08,
       opponentShotWeights: zeroWeights(),
+      opponentShotWeightsByOpponent: {},
       telemetryShotCount: 0,
       telemetrySourceFiles: [],
       updatedAt: null

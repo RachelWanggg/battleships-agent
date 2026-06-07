@@ -42,6 +42,7 @@ export type StrategyConfig = {
     orientationBalanceWeight: number;
     randomJitterWeight: number;
     opponentShotWeights: number[][];
+    opponentShotWeightsByOpponent: Record<string, number[][]>;
     telemetryShotCount: number;
     telemetrySourceFiles: string[];
     updatedAt: string | null;
