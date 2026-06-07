@@ -266,9 +266,13 @@ Current local status:
 - `@auth/agent` SDK is installed and the adapter matches the installed SDK surface.
 - Agent Auth approval is complete locally; `.agent-auth.json` and `agent-id.txt` exist and are ignored.
 - `npm test` passes locally with placement, shooting, REST request, auth reuse, non-blocking telemetry, and mocked response loop coverage.
-- Two real full Attempts reached `ATTEMPT_COMPLETED`.
+- Multiple real full Attempts reached `ATTEMPT_COMPLETED` without disqualification.
 - Baseline result: finalScore `93`, wins `4`, losses `11`, hitDifferential `-16`, attemptId `948fcf8b-f66e-40c7-83ca-7b31ad6587ec`.
-- Current best result after probability-density shooting: finalScore `302`, wins `9`, losses `6`, hitDifferential `20`, attemptId `57ccd74b-d088-4c74-aa48-06d7bd9fa81f`.
+- Probability-density shooting result: finalScore `302`, wins `9`, losses `6`, hitDifferential `20`, attemptId `57ccd74b-d088-4c74-aa48-06d7bd9fa81f`.
+- Global adaptive-placement result: finalScore `448`, wins `11`, losses `4`, hitDifferential `67`, attemptId `31935daf-c1c9-4695-bcfe-4d45235ef44a`.
+- Per-opponent adaptive-placement result: finalScore `455`, wins `11`, losses `4`, hitDifferential `71`, attemptId `1a9f2b36-dc70-4c44-a95b-49fa65452dd8`.
+- Current best result: finalScore `572`, wins `14`, losses `1`, hitDifferential `92`, opponentShipsSunk `74`, agentShipsLost `44`, attemptId `c6f6d443-7bde-4a91-94ff-e25371f96d17`.
+- Later tuning experiments scoring `452` and `504` were rejected because they did not beat the current best and increased `agentShipsLost`.
 
 ### Phase 0: Local Prep
 
@@ -351,17 +355,19 @@ Entry criteria:
 
 Checklist:
 
-- [ ] Opponent shot heatmap can be built from telemetry.
-- [ ] Candidate fleets are scored by heat exposure.
-- [ ] Candidate scoring also considers clustering and orientation balance.
-- [ ] Config is loaded and saved deterministically.
-- [ ] Placement remains randomized within safe bounds.
+- [x] Opponent shot heatmap can be built from telemetry.
+- [x] Candidate fleets are scored by heat exposure.
+- [x] Candidate scoring also considers clustering and orientation balance.
+- [x] Config is loaded and saved deterministically.
+- [x] Placement remains randomized within safe bounds.
 
 Exit criteria:
 
-- Prior telemetry changes future placement scores.
-- Placement tests still prove no overlap or out-of-bounds ships.
-- Config update is documented in telemetry or console output.
+- [x] Prior telemetry changes future placement scores.
+- [x] Placement tests still prove no overlap or out-of-bounds ships.
+- [x] Config update is documented in telemetry or console output.
+- [x] Attempt `31935daf-c1c9-4695-bcfe-4d45235ef44a` reached score `448`, improving over probability-density score `302`.
+- [x] Per-opponent adaptive placement later reached current best score `572`.
 
 ### Phase 4: Run Loop
 
@@ -372,16 +378,17 @@ Entry criteria:
 
 Checklist:
 
-- [ ] Run Attempt.
-- [ ] Run analysis.
-- [ ] Record score, wins, losses, hit differential, and weak opponents.
-- [ ] Apply at most one or two safe config changes.
-- [ ] Run another Attempt if time allows.
+- [x] Run Attempt.
+- [x] Run analysis.
+- [x] Record score, wins, losses, hit differential, and weak opponents.
+- [x] Apply at most one or two safe config changes.
+- [x] Run another Attempt if time allows.
 
 Exit criteria:
 
-- At least two Attempt results are comparable, or one high-quality complete Attempt is documented if time is short.
-- README can truthfully describe the closed-loop behavior.
+- [x] At least two Attempt results are comparable, or one high-quality complete Attempt is documented if time is short.
+- [x] README can truthfully describe the closed-loop behavior.
+- [x] Current best remains score `572`; later `452` and `504` experiments were compared and rejected.
 
 ### Phase 5: Submit
 
@@ -392,19 +399,19 @@ Entry criteria:
 
 Checklist:
 
-- [ ] Run typecheck.
-- [ ] Run tests.
-- [ ] Run final smoke or full Attempt if time permits.
-- [ ] Update README with actual setup and run commands.
-- [ ] Commit in coherent increments.
-- [ ] Push repository.
+- [x] Run typecheck.
+- [x] Run tests.
+- [x] Run final smoke or full Attempt if time permits.
+- [x] Update README with actual setup and run commands.
+- [x] Commit in coherent increments.
+- [x] Push repository.
 - [ ] Share repository with the evaluator.
 
 Exit criteria:
 
-- GitHub repository is available and understandable.
-- Latest known score/result is documented.
-- Reviewer can see the closed-loop design without needing chat history.
+- [x] GitHub repository is available and understandable.
+- [x] Latest known score/result is documented.
+- [x] Reviewer can see the closed-loop design without needing chat history.
 
 ## Test Strategy
 
@@ -518,6 +525,7 @@ Strong:
 
 - Multiple completed Attempts are logged.
 - Score improves or strategy updates are documented.
+- Current best score is `572` with attemptId `c6f6d443-7bde-4a91-94ff-e25371f96d17`.
 - Disqualification checks are explicit in code.
 - Per-opponent weaknesses are visible in telemetry.
 
