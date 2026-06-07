@@ -100,5 +100,5 @@ Telemetry is written under `data/attempts/*.jsonl`, which is ignored because it 
 Global adaptive placement improved the score from `302` to `448`, and per-opponent
 adaptive placement improved it to `455` and then `572` after another telemetry update.
 The next real-server comparison target is the current best score `572`. The updated
-placement config was built from 3,689 de-duplicated opponent shots across 8 saved
+placement config was built from 4,350 de-duplicated opponent shots across 9 saved
 telemetry files and stores both global and per-opponent placement heatmaps.
