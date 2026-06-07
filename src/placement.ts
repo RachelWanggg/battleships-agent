@@ -1,4 +1,22 @@
+import { readFile, readdir } from "node:fs/promises";
+import { join } from "node:path";
 import { BOARD_SIZE, FLEET, type Coord, type ShipPlacement } from "./types.js";
+import type { StrategyConfig } from "./types.js";
+
+export type OpponentShotHeatmap = {
+  counts: number[][];
+  weights: number[][];
+  totalShots: number;
+  sourceFiles: string[];
+};
+
+export type FleetScore = {
+  total: number;
+  heatExposure: number;
+  clusterPenalty: number;
+  orientationPenalty: number;
+  randomJitter: number;
+};
 
 export function cellsForPlacement(placement: ShipPlacement): Coord[] {
   const ship = FLEET.find((candidate) => candidate.type === placement.type);
@@ -89,10 +107,252 @@ export function generateRandomFleet(random: () => number = Math.random): ShipPla
   return placements;
 }
 
+export function generateAdaptiveFleet(
+  config: StrategyConfig,
+  random: () => number = Math.random
+): ShipPlacement[] {
+  const candidateCount = Math.max(1, Math.floor(config.placement.candidateCount));
+  let bestFleet: ShipPlacement[] | undefined;
+  let bestScore: FleetScore | undefined;
+
+  for (let i = 0; i < candidateCount; i += 1) {
+    const fleet = generateRandomFleet(random);
+    const errors = validateFleet(fleet);
+    if (errors.length > 0) {
+      continue;
+    }
+
+    const score = scoreFleetCandidate(fleet, config, random);
+    if (!bestScore || score.total < bestScore.total) {
+      bestFleet = fleet;
+      bestScore = score;
+    }
+  }
+
+  if (!bestFleet) {
+    throw new Error("Failed to generate a legal adaptive fleet");
+  }
+
+  return bestFleet;
+}
+
+export function scoreFleetCandidate(
+  fleet: ShipPlacement[],
+  config: StrategyConfig,
+  random: () => number = Math.random
+): FleetScore {
+  const validationErrors = validateFleet(fleet);
+  if (validationErrors.length > 0) {
+    return {
+      total: Number.POSITIVE_INFINITY,
+      heatExposure: Number.POSITIVE_INFINITY,
+      clusterPenalty: Number.POSITIVE_INFINITY,
+      orientationPenalty: Number.POSITIVE_INFINITY,
+      randomJitter: 0
+    };
+  }
+
+  const heatExposure = scoreHeatExposure(fleet, config.placement.opponentShotWeights);
+  const clusterPenalty = scoreClustering(fleet);
+  const orientationPenalty = scoreOrientationBalance(fleet);
+  const randomJitter = random();
+  const total =
+    heatExposure * config.placement.heatmapWeight +
+    clusterPenalty * config.placement.clusterWeight +
+    orientationPenalty * config.placement.orientationBalanceWeight -
+    randomJitter * config.placement.randomJitterWeight;
+
+  return { total, heatExposure, clusterPenalty, orientationPenalty, randomJitter };
+}
+
+export async function loadOpponentShotHeatmap(
+  attemptsDir: string = join(process.cwd(), "data", "attempts")
+): Promise<OpponentShotHeatmap> {
+  let entries: string[];
+  try {
+    entries = await readdir(attemptsDir);
+  } catch {
+    return emptyHeatmap([]);
+  }
+
+  const sourceFiles = entries.filter((entry) => entry.endsWith(".jsonl")).sort();
+  const counts = createMatrix();
+  let totalShots = 0;
+
+  for (const fileName of sourceFiles) {
+    const raw = await readFile(join(attemptsDir, fileName), "utf8");
+    const seen = new Set<string>();
+
+    for (const line of raw.split(/\r?\n/)) {
+      if (line.trim() === "") {
+        continue;
+      }
+
+      const event = parseTelemetryLine(line);
+      if (!event || event.event !== "move_required" || !isRecord(event.data)) {
+        continue;
+      }
+
+      const gameOrdinal = stringKey(event.data.gameOrdinal);
+      const opponentId = stringKey(event.data.opponentId);
+      const shots = Array.isArray(event.data.opponentShots) ? event.data.opponentShots : [];
+
+      for (const shot of shots) {
+        const coord = shotToCoord(shot);
+        if (!coord || !isOnBoard(coord)) {
+          continue;
+        }
+
+        const key = `${fileName}:${gameOrdinal}:${opponentId}:${coord.x},${coord.y}`;
+        if (seen.has(key)) {
+          continue;
+        }
+
+        seen.add(key);
+        counts[coord.y][coord.x] += 1;
+        totalShots += 1;
+      }
+    }
+  }
+
+  return {
+    counts,
+    weights: normalizeHeatmap(counts),
+    totalShots,
+    sourceFiles
+  };
+}
+
+export function configWithPlacementWeights(
+  config: StrategyConfig,
+  heatmap: OpponentShotHeatmap,
+  updatedAt: string = new Date().toISOString()
+): StrategyConfig {
+  return {
+    ...config,
+    placement: {
+      ...config.placement,
+      opponentShotWeights: heatmap.weights,
+      telemetryShotCount: heatmap.totalShots,
+      telemetrySourceFiles: heatmap.sourceFiles,
+      updatedAt
+    }
+  };
+}
+
 function randomInt(exclusiveMax: number, random: () => number): number {
   return Math.floor(random() * exclusiveMax);
 }
 
 function coordKey({ x, y }: Coord): string {
   return `${x},${y}`;
+}
+
+function scoreHeatExposure(fleet: ShipPlacement[], weights: number[][]): number {
+  return fleet
+    .flatMap(cellsForPlacement)
+    .reduce((total, cell) => total + (weights[cell.y]?.[cell.x] ?? 0), 0);
+}
+
+function scoreClustering(fleet: ShipPlacement[]): number {
+  const cellsByShip = new Map<string, Coord[]>();
+  for (const placement of fleet) {
+    cellsByShip.set(placement.type, cellsForPlacement(placement));
+  }
+
+  let penalty = 0;
+  const ships = [...cellsByShip.entries()];
+  for (let i = 0; i < ships.length; i += 1) {
+    for (let j = i + 1; j < ships.length; j += 1) {
+      const [, firstCells] = ships[i];
+      const [, secondCells] = ships[j];
+      let minDistance = Number.POSITIVE_INFINITY;
+
+      for (const first of firstCells) {
+        for (const second of secondCells) {
+          const distance = Math.abs(first.x - second.x) + Math.abs(first.y - second.y);
+          minDistance = Math.min(minDistance, distance);
+        }
+      }
+
+      if (minDistance <= 1) {
+        penalty += 2;
+      } else if (minDistance === 2) {
+        penalty += 0.75;
+      } else if (minDistance === 3) {
+        penalty += 0.25;
+      }
+    }
+  }
+
+  return penalty;
+}
+
+function scoreOrientationBalance(fleet: ShipPlacement[]): number {
+  const horizontal = fleet.filter((placement) => placement.orientation === "H").length;
+  const vertical = fleet.length - horizontal;
+  return Math.abs(horizontal - vertical) / fleet.length;
+}
+
+function normalizeHeatmap(counts: number[][]): number[][] {
+  const max = Math.max(0, ...counts.flat());
+  if (max === 0) {
+    return createMatrix();
+  }
+  return counts.map((row) => row.map((count) => Number((count / max).toFixed(4))));
+}
+
+function createMatrix(): number[][] {
+  return Array.from({ length: BOARD_SIZE }, () => Array.from({ length: BOARD_SIZE }, () => 0));
+}
+
+function emptyHeatmap(sourceFiles: string[]): OpponentShotHeatmap {
+  const counts = createMatrix();
+  return {
+    counts,
+    weights: createMatrix(),
+    totalShots: 0,
+    sourceFiles
+  };
+}
+
+function parseTelemetryLine(line: string): { event: string; data: unknown } | undefined {
+  try {
+    const parsed = JSON.parse(line) as unknown;
+    if (!isRecord(parsed) || typeof parsed.event !== "string") {
+      return undefined;
+    }
+    return { event: parsed.event, data: parsed.data };
+  } catch {
+    return undefined;
+  }
+}
+
+function shotToCoord(value: unknown): Coord | undefined {
+  if (!isRecord(value)) {
+    return undefined;
+  }
+
+  const x = toNumber(value.col);
+  const y = toNumber(value.row);
+  return x === undefined || y === undefined ? undefined : { x, y };
+}
+
+function toNumber(value: unknown): number | undefined {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+  return undefined;
+}
+
+function stringKey(value: unknown): string {
+  return typeof value === "string" || typeof value === "number" ? String(value) : "unknown";
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null;
 }

@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { ApiError, BattleshipsClient, parseErrorCode, type ApiResponse } from "./client.js";
-import { generateRandomFleet, validateFleet } from "./placement.js";
+import { loadConfig } from "./config.js";
+import { generateAdaptiveFleet, generateRandomFleet, validateFleet } from "./placement.js";
 import { ShotPlanner } from "./shooting.js";
 import { TelemetryWriter } from "./telemetry.js";
 import type {
@@ -11,7 +12,8 @@ import type {
   GameState,
   MoveRequiredEnvelope,
   ShipPlacement,
-  ShotRecord
+  ShotRecord,
+  StrategyConfig
 } from "./types.js";
 
 type TelemetrySink = {
@@ -51,6 +53,7 @@ export async function playAttempt(
 ): Promise<Extract<GameplayEnvelope, { responseType: "ATTEMPT_COMPLETED" | "ATTEMPT_DISQUALIFIED" }>> {
   const logger = createTelemetryLogger(telemetry);
   const planners = new Map<number, ShotPlanner>();
+  const config = await loadConfig();
 
   logger.write("agent_started", { startedAt });
 
@@ -64,7 +67,7 @@ export async function playAttempt(
     }
 
     if (envelope.responseType === "MOVE_REQUIRED") {
-      envelope = await handleMoveRequired(client, logger, planners, envelope);
+      envelope = await handleMoveRequired(client, logger, planners, config, envelope);
       continue;
     }
 
@@ -132,6 +135,7 @@ async function handleMoveRequired(
   client: GameClient,
   telemetry: TelemetryLogger,
   planners: Map<number, ShotPlanner>,
+  config: StrategyConfig,
   envelope: MoveRequiredEnvelope
 ): Promise<GameplayEnvelope> {
   const { state } = envelope;
@@ -149,7 +153,7 @@ async function handleMoveRequired(
   });
 
   if (state.nextRequiredMove === "PLACE_SHIPS") {
-    const placements = generateValidatedFleet();
+    const placements = generateValidatedFleet(config);
     const response = await client.placeShips({ placements: placements.map(toApiPlacement) });
     telemetry.write("place_ships", {
       ...requestTelemetry(response),
@@ -180,9 +184,9 @@ async function handleMoveRequired(
   return assertNever(state.nextRequiredMove);
 }
 
-function generateValidatedFleet(): ShipPlacement[] {
+function generateValidatedFleet(config: StrategyConfig): ShipPlacement[] {
   for (let attempt = 0; attempt < 100; attempt += 1) {
-    const placements = generateRandomFleet();
+    const placements = attempt === 0 ? generateAdaptiveFleet(config) : generateRandomFleet();
     const errors = validateFleet(placements);
     if (errors.length === 0) {
       return placements;

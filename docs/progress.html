@@ -306,7 +306,8 @@
             <li>Baseline local code is ready, Agent Auth is approved, and `npm test` passes.</li>
             <li>Baseline success is achieved: one full 15-game Attempt completed without disqualification.</li>
             <li>Comparison baseline is score 93 with 4 wins, 11 losses, and hit differential -16.</li>
-            <li>Current best after probability-density shooting is score 302 with 9 wins, 6 losses, and hit differential 20.</li>
+            <li>Current best after adaptive placement is score 448 with 11 wins, 4 losses, and hit differential 67.</li>
+            <li>Previous best after probability-density shooting was score 302 with 9 wins, 6 losses, and hit differential 20.</li>
             <li>Every request needs a fresh JWT with the full capability list.</li>
             <li>Never repeat a shot, shoot off-board, or submit an invalid fleet.</li>
             <li>Make every strategy change measurable through telemetry.</li>
@@ -460,7 +461,7 @@
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge active">Phase 3</span>
+            <span class="badge done">Phase 3</span>
             <strong>Adaptive Placement</strong>
             <span class="time">1:30-2:05</span>
           </div>
@@ -473,32 +474,32 @@
               <li>Persist updated config after analysis.</li>
             </ul>
             <div class="checklist" aria-label="Phase 3 checklist">
-              <label><input type="checkbox" /> Build heatmap from telemetry</label>
-              <label><input type="checkbox" /> Score fleet heat exposure</label>
-              <label><input type="checkbox" /> Penalize clustering</label>
-              <label><input type="checkbox" /> Balance orientation</label>
-              <label><input type="checkbox" /> Save updated config</label>
+              <label><input type="checkbox" checked /> Build heatmap from telemetry</label>
+              <label><input type="checkbox" checked /> Score fleet heat exposure</label>
+              <label><input type="checkbox" checked /> Penalize clustering</label>
+              <label><input type="checkbox" checked /> Balance orientation</label>
+              <label><input type="checkbox" checked /> Save updated config</label>
             </div>
           </div>
           <aside class="phase-side">
             <div class="gate">
               <strong>Enter when</strong>
-              <span>Entered: two completed Attempt telemetry files exist; current best score 302 is the comparison target.</span>
+              <span>Entered: two completed Attempt telemetry files existed; probability-density score 302 was the comparison target.</span>
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>Prior Attempt data changes future placement decisions.</span>
+              <span>Done: Attempt `31935daf-c1c9-4695-bcfe-4d45235ef44a` reached `ATTEMPT_COMPLETED` with score 448; `data/config.json` stores placement weights from 2,363 opponent shots.</span>
             </div>
             <div class="gate">
               <strong>Test gate</strong>
-              <span>Heatmap/config tests pass and placement legality tests still pass.</span>
+              <span>Passing: heatmap loading, candidate scoring, placement legality, and config persistence tests pass; `npm test` passes with 23 tests.</span>
             </div>
           </aside>
         </article>
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge todo">Phase 4</span>
+            <span class="badge active">Phase 4</span>
             <strong>Run Loop</strong>
             <span class="time">2:05-2:35</span>
           </div>
@@ -579,9 +580,9 @@
             <li>Done locally: placement legality, shot legality, fresh JWT per request, empty-body headers, auth reuse.</li>
             <li>Done locally: mocked integration for responseType loop, active-attempt resume, completion, and disqualification stop.</li>
             <li>Done locally: probability-density shooting tests for hits, aligned hits, misses, fallback, and exhausted board.</li>
-            <li>Done on real server: baseline Attempt score 93 and probability-density Attempt score 302, both `ATTEMPT_COMPLETED`.</li>
+            <li>Done on real server: baseline Attempt score 93, probability-density Attempt score 302, and adaptive-placement Attempt score 448 all reached `ATTEMPT_COMPLETED`.</li>
             <li>Next strategy tests: placement heatmap scoring and config load/save.</li>
-            <li>Next real-server check: run another Attempt after adaptive placement and compare against score 302.</li>
+            <li>Next real-server check: compare any further tuning against current best score 448.</li>
           </ul>
         </article>
         <article class="panel">

@@ -6,12 +6,19 @@ The implementation plan, constraints, strategy decisions, telemetry design, and 
 
 ## Current Status
 
-Baseline and probability-density shooting are implemented. Two full official Attempts have
-completed without disqualification.
+Baseline, probability-density shooting, and adaptive placement are implemented. Two full
+official Attempts have completed without disqualification.
 
 Current best Attempt:
 
 - Result: `ATTEMPT_COMPLETED`
+- Final score: `448`
+- Wins/losses: `11` / `4`
+- Hit differential: `67`
+- Attempt ID: `31935daf-c1c9-4695-bcfe-4d45235ef44a`
+
+Previous best after probability-density shooting:
+
 - Final score: `302`
 - Wins/losses: `9` / `6`
 - Hit differential: `20`
@@ -29,7 +36,7 @@ The agent has:
 - Persistent Agent Auth storage through `@auth/agent` and a disk-backed KV store.
 - Fresh JWT minting per REST request with the full capability list.
 - A typed REST client for the Battleships endpoints.
-- Legal random fleet placement with local validation.
+- Adaptive legal fleet placement from prior opponent shot telemetry, with local validation.
 - Safe non-repeating probability-density shooting.
 - A `responseType`-driven game loop and JSONL telemetry.
 
@@ -74,6 +81,7 @@ Telemetry is written under `data/attempts/*.jsonl`, which is ignored because it 
 
 ## Next Work
 
-The next phase is adaptive placement from telemetry. The latest Attempt improved from
-score `93` to `302`; remaining losses show opponents hitting our fleet quickly, so
-placement should use opponent shot heatmaps while keeping randomization.
+Adaptive placement improved the current best from `302` to `448`. The next safe step is
+a focused telemetry review of Attempt `31935daf-c1c9-4695-bcfe-4d45235ef44a`, then one
+small measurable tuning change if the losses show a clear pattern. The updated placement
+config was built from 2,363 de-duplicated opponent shots across 6 saved telemetry files.

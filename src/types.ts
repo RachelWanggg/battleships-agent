@@ -40,6 +40,11 @@ export type StrategyConfig = {
     heatmapWeight: number;
     clusterWeight: number;
     orientationBalanceWeight: number;
+    randomJitterWeight: number;
+    opponentShotWeights: number[][];
+    telemetryShotCount: number;
+    telemetrySourceFiles: string[];
+    updatedAt: string | null;
   };
   shooting: {
     useProbabilityDensity: boolean;
