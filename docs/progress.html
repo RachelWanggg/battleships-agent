@@ -305,7 +305,8 @@
           <ul class="rule-list">
             <li>Baseline local code is ready, Agent Auth is approved, and `npm test` passes.</li>
             <li>Baseline success is achieved: one full 15-game Attempt completed without disqualification.</li>
-            <li>Latest baseline score is 93 with 4 wins, 11 losses, and hit differential -16.</li>
+            <li>Comparison baseline is score 93 with 4 wins, 11 losses, and hit differential -16.</li>
+            <li>Current best after probability-density shooting is score 302 with 9 wins, 6 losses, and hit differential 20.</li>
             <li>Every request needs a fresh JWT with the full capability list.</li>
             <li>Never repeat a shot, shoot off-board, or submit an invalid fleet.</li>
             <li>Make every strategy change measurable through telemetry.</li>
@@ -421,7 +422,7 @@
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge active">Phase 2</span>
+            <span class="badge done">Phase 2</span>
             <strong>Better Shooting</strong>
             <span class="time">0:50-1:30</span>
           </div>
@@ -434,11 +435,11 @@
               <li>Keep hard validation before every submitted shot.</li>
             </ul>
             <div class="checklist" aria-label="Phase 2 checklist">
-              <label><input type="checkbox" /> Enumerate candidate ship placements</label>
-              <label><input type="checkbox" /> Exclude misses</label>
-              <label><input type="checkbox" /> Prioritize unresolved hits</label>
-              <label><input type="checkbox" /> Directional targeting for aligned hits</label>
-              <label><input type="checkbox" /> Legal fallback on crowded board</label>
+              <label><input type="checkbox" checked /> Enumerate candidate ship placements</label>
+              <label><input type="checkbox" checked /> Exclude misses</label>
+              <label><input type="checkbox" checked /> Prioritize unresolved hits</label>
+              <label><input type="checkbox" checked /> Directional targeting for aligned hits</label>
+              <label><input type="checkbox" checked /> Legal fallback on crowded board</label>
             </div>
           </div>
           <aside class="phase-side">
@@ -448,18 +449,18 @@
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>Shot selection is explainable, logged, and never returns illegal cells.</span>
+              <span>Done: shot selection is explainable, logged, and never returns illegal cells. Attempt `57ccd74b-d088-4c74-aa48-06d7bd9fa81f` completed with score 302.</span>
             </div>
             <div class="gate">
               <strong>Test gate</strong>
-              <span>Shooting unit tests cover hits, aligned hits, misses, and fallback.</span>
+              <span>Passing: shooting unit tests cover hits, aligned hits, misses, and fallback; `npm test` passes with 19 tests.</span>
             </div>
           </aside>
         </article>
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge todo">Phase 3</span>
+            <span class="badge active">Phase 3</span>
             <strong>Adaptive Placement</strong>
             <span class="time">1:30-2:05</span>
           </div>
@@ -482,7 +483,7 @@
           <aside class="phase-side">
             <div class="gate">
               <strong>Enter when</strong>
-              <span>Telemetry exists, or fixtures can simulate opponent shots.</span>
+              <span>Entered: two completed Attempt telemetry files exist; current best score 302 is the comparison target.</span>
             </div>
             <div class="gate">
               <strong>Exit when</strong>
@@ -577,9 +578,10 @@
           <ul class="compact-list">
             <li>Done locally: placement legality, shot legality, fresh JWT per request, empty-body headers, auth reuse.</li>
             <li>Done locally: mocked integration for responseType loop, active-attempt resume, completion, and disqualification stop.</li>
-            <li>Done on real server: Agent Auth approval and one full baseline Attempt reaching `ATTEMPT_COMPLETED`.</li>
-            <li>Next strategy tests: probability targeting and config load/save.</li>
-            <li>Next real-server check: run another Attempt after each strategy change and compare against score 93.</li>
+            <li>Done locally: probability-density shooting tests for hits, aligned hits, misses, fallback, and exhausted board.</li>
+            <li>Done on real server: baseline Attempt score 93 and probability-density Attempt score 302, both `ATTEMPT_COMPLETED`.</li>
+            <li>Next strategy tests: placement heatmap scoring and config load/save.</li>
+            <li>Next real-server check: run another Attempt after adaptive placement and compare against score 302.</li>
           </ul>
         </article>
         <article class="panel">

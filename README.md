@@ -6,11 +6,19 @@ The implementation plan, constraints, strategy decisions, telemetry design, and 
 
 ## Current Status
 
-Baseline is implemented and has completed one full official Attempt without disqualification.
+Baseline and probability-density shooting are implemented. Two full official Attempts have
+completed without disqualification.
 
-Latest known Attempt:
+Current best Attempt:
 
 - Result: `ATTEMPT_COMPLETED`
+- Final score: `302`
+- Wins/losses: `9` / `6`
+- Hit differential: `20`
+- Attempt ID: `57ccd74b-d088-4c74-aa48-06d7bd9fa81f`
+
+Comparison baseline:
+
 - Final score: `93`
 - Wins/losses: `4` / `11`
 - Hit differential: `-16`
@@ -22,7 +30,7 @@ The agent has:
 - Fresh JWT minting per REST request with the full capability list.
 - A typed REST client for the Battleships endpoints.
 - Legal random fleet placement with local validation.
-- Safe non-repeating hunt/target shooting.
+- Safe non-repeating probability-density shooting.
 - A `responseType`-driven game loop and JSONL telemetry.
 
 Agent Auth has been approved locally. The approved agent id is saved in `agent-id.txt`, and SDK storage is saved in `.agent-auth.json`; both files are ignored and must not be committed.
@@ -66,4 +74,6 @@ Telemetry is written under `data/attempts/*.jsonl`, which is ignored because it 
 
 ## Next Work
 
-The baseline now prioritizes avoiding disqualification over score. The next phase is improving shooting from simple hunt/target to probability-density targeting, using the completed Attempt telemetry as the comparison baseline.
+The next phase is adaptive placement from telemetry. The latest Attempt improved from
+score `93` to `302`; remaining losses show opponents hitting our fleet quickly, so
+placement should use opponent shot heatmaps while keeping randomization.

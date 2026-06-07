@@ -266,8 +266,9 @@ Current local status:
 - `@auth/agent` SDK is installed and the adapter matches the installed SDK surface.
 - Agent Auth approval is complete locally; `.agent-auth.json` and `agent-id.txt` exist and are ignored.
 - `npm test` passes locally with placement, shooting, REST request, auth reuse, non-blocking telemetry, and mocked response loop coverage.
-- One real full Attempt reached `ATTEMPT_COMPLETED`.
-- Latest baseline result: finalScore `93`, wins `4`, losses `11`, hitDifferential `-16`, attemptId `948fcf8b-f66e-40c7-83ca-7b31ad6587ec`.
+- Two real full Attempts reached `ATTEMPT_COMPLETED`.
+- Baseline result: finalScore `93`, wins `4`, losses `11`, hitDifferential `-16`, attemptId `948fcf8b-f66e-40c7-83ca-7b31ad6587ec`.
+- Current best result after probability-density shooting: finalScore `302`, wins `9`, losses `6`, hitDifferential `20`, attemptId `57ccd74b-d088-4c74-aa48-06d7bd9fa81f`.
 
 ### Phase 0: Local Prep
 
@@ -326,18 +327,19 @@ Entry criteria:
 
 Checklist:
 
-- [ ] Probability-density shot scoring implemented.
-- [ ] Misses are excluded from candidate placements.
-- [ ] Known unresolved hits are prioritized.
-- [ ] Directional targeting works when multiple hits align.
-- [ ] Fallback always returns a legal untried cell.
-- [ ] Tests cover edge cases around hit clusters and nearly full boards.
+- [x] Probability-density shot scoring implemented.
+- [x] Misses are excluded from candidate placements.
+- [x] Known unresolved hits are prioritized.
+- [x] Directional targeting works when multiple hits align.
+- [x] Fallback always returns a legal untried cell.
+- [x] Tests cover edge cases around hit clusters and nearly full boards.
 
 Exit criteria:
 
-- `npm test` passes for shooting logic.
-- A smoke run or full Attempt shows no repeated/off-board shots.
-- Telemetry includes enough shot details to compare the strategy.
+- [x] `npm test` passes for shooting logic.
+- [x] A full Attempt shows no repeated/off-board shots.
+- [x] Telemetry includes enough shot details to compare the strategy.
+- [x] Attempt `57ccd74b-d088-4c74-aa48-06d7bd9fa81f` reached score `302`, improving over baseline `93`.
 
 ### Phase 3: Adaptive Placement
 
@@ -345,6 +347,7 @@ Entry criteria:
 
 - At least one telemetry file exists, or a fixture can simulate opponent shots.
 - Baseline placement is already legal and tested.
+- Probability-density shooting is complete and current best score is documented.
 
 Checklist:
 
