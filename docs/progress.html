@@ -499,7 +499,7 @@
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge active">Phase 4</span>
+            <span class="badge done">Phase 4</span>
             <strong>Run Loop</strong>
             <span class="time">2:05-2:35</span>
           </div>
@@ -511,32 +511,32 @@
               <li>Only keep changes that improve measured behavior or reduce risk.</li>
             </ul>
             <div class="checklist" aria-label="Phase 4 checklist">
-              <label><input type="checkbox" /> Attempt result saved</label>
-              <label><input type="checkbox" /> Analysis summary produced</label>
-              <label><input type="checkbox" /> Weak opponents identified</label>
-              <label><input type="checkbox" /> Config updated safely</label>
-              <label><input type="checkbox" /> Results compared</label>
+              <label><input type="checkbox" checked /> Attempt result saved</label>
+              <label><input type="checkbox" checked /> Analysis summary produced</label>
+              <label><input type="checkbox" checked /> Weak opponents identified</label>
+              <label><input type="checkbox" checked /> Config updated safely</label>
+              <label><input type="checkbox" checked /> Results compared</label>
             </div>
           </div>
           <aside class="phase-side">
             <div class="gate">
               <strong>Enter when</strong>
-              <span>Agent completes Attempts and analyzer can read telemetry.</span>
+              <span>Entered: agent completed full Attempts and analyzer could read saved telemetry.</span>
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>Two Attempts are comparable, or one complete Attempt is documented if time is short.</span>
+              <span>Done: multiple Attempts were compared; current best remains score 572 from Attempt `c6f6d443-7bde-4a91-94ff-e25371f96d17`, with later 452 and 504 tuning experiments rejected.</span>
             </div>
             <div class="gate">
               <strong>Test gate</strong>
-              <span>Analyzer handles the latest telemetry without crashing.</span>
+              <span>Passing: analyzer handles latest telemetry and regenerates config without crashing.</span>
             </div>
           </aside>
         </article>
 
         <article class="phase">
           <div class="phase-meta">
-            <span class="badge warn">Phase 5</span>
+            <span class="badge done">Phase 5</span>
             <strong>Submit</strong>
             <span class="time">2:35-3:00</span>
           </div>
@@ -549,25 +549,25 @@
               <li>Push to GitHub and share with the required evaluator.</li>
             </ul>
             <div class="checklist" aria-label="Phase 5 checklist">
-              <label><input type="checkbox" /> Typecheck passes</label>
-              <label><input type="checkbox" /> Tests pass</label>
-              <label><input type="checkbox" /> README reflects real commands</label>
-              <label><input type="checkbox" /> Credentials/logs not committed</label>
-              <label><input type="checkbox" /> Repo pushed</label>
+              <label><input type="checkbox" checked /> Typecheck passes</label>
+              <label><input type="checkbox" checked /> Tests pass</label>
+              <label><input type="checkbox" checked /> README reflects real commands</label>
+              <label><input type="checkbox" checked /> Credentials/logs not committed</label>
+              <label><input type="checkbox" checked /> Repo pushed</label>
             </div>
           </div>
           <aside class="phase-side">
             <div class="gate">
               <strong>Enter when</strong>
-              <span>Agent is stable enough to submit and no credential leak is present.</span>
+              <span>Entered: agent is stable enough to submit and no credential leak is present.</span>
             </div>
             <div class="gate">
               <strong>Exit when</strong>
-              <span>The repository is pushed and can be understood by a reviewer.</span>
+              <span>Done: repository is pushed, README documents the 572 best Attempt, and local working tree was restored to match `origin/main` before final documentation update.</span>
             </div>
             <div class="gate">
               <strong>Test gate</strong>
-              <span>Run typecheck, tests, and final smoke/full Attempt if time permits.</span>
+              <span>Passing: `npm test` passed locally; full real-server Attempts completed without disqualification.</span>
             </div>
           </aside>
         </article>
