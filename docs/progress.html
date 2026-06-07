@@ -1,0 +1,654 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Battleships Agent Phase Board</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f7f7f4;
+        --panel: #ffffff;
+        --text: #1e2329;
+        --muted: #5f6874;
+        --line: #d8d9d3;
+        --accent: #0f766e;
+        --accent-soft: #d9f3ee;
+        --warn: #9a5b00;
+        --warn-soft: #fff1d6;
+        --done: #166534;
+        --blocked: #991b1b;
+        --code: #f1f3f5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        line-height: 1.5;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 32px 0 48px;
+      }
+
+      header {
+        display: grid;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+
+      h1,
+      h2,
+      h3 {
+        margin: 0;
+        line-height: 1.15;
+      }
+
+      h1 {
+        font-size: clamp(2rem, 4vw, 3.2rem);
+        letter-spacing: 0;
+      }
+
+      h2 {
+        font-size: 1.2rem;
+      }
+
+      h3 {
+        font-size: 1rem;
+      }
+
+      p {
+        margin: 0;
+      }
+
+      .lede {
+        max-width: 820px;
+        color: var(--muted);
+        font-size: 1.02rem;
+      }
+
+      .top-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+
+      .panel,
+      .phase,
+      .prompt {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .panel {
+        padding: 18px;
+      }
+
+      .panel h2 {
+        margin-bottom: 12px;
+      }
+
+      .rule-list,
+      .compact-list {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .rule-list li,
+      .compact-list li {
+        margin: 6px 0;
+      }
+
+      .phase-grid {
+        display: grid;
+        gap: 14px;
+      }
+
+      .phase {
+        display: grid;
+        grid-template-columns: 160px 1fr 240px;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .phase-meta {
+        display: grid;
+        align-content: start;
+        gap: 8px;
+      }
+
+      .badge {
+        display: inline-flex;
+        width: fit-content;
+        align-items: center;
+        border-radius: 999px;
+        padding: 3px 9px;
+        font-size: 0.78rem;
+        font-weight: 700;
+        border: 1px solid transparent;
+      }
+
+      .badge.todo {
+        background: var(--code);
+        color: var(--muted);
+      }
+
+      .badge.active {
+        background: var(--accent-soft);
+        color: var(--accent);
+      }
+
+      .badge.done {
+        background: #ddf6e7;
+        color: var(--done);
+      }
+
+      .badge.warn {
+        background: var(--warn-soft);
+        color: var(--warn);
+      }
+
+      .time {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      .phase-body {
+        display: grid;
+        gap: 12px;
+      }
+
+      .phase-body ul {
+        margin: 0;
+        padding-left: 20px;
+      }
+
+      .phase-body li {
+        margin: 5px 0;
+      }
+
+      .phase-side {
+        display: grid;
+        align-content: start;
+        gap: 10px;
+        color: var(--muted);
+        font-size: 0.92rem;
+      }
+
+      .gate {
+        display: grid;
+        gap: 6px;
+      }
+
+      .gate strong {
+        color: var(--text);
+      }
+
+      .checklist {
+        display: grid;
+        gap: 6px;
+        padding: 10px 12px;
+        background: #fbfbf9;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+      }
+
+      .checklist label {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        color: var(--text);
+      }
+
+      .checklist input {
+        margin-top: 4px;
+      }
+
+      .prompt-bank {
+        display: grid;
+        gap: 14px;
+        margin-top: 18px;
+      }
+
+      .prompt {
+        overflow: hidden;
+      }
+
+      .prompt-head {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--line);
+        background: #fbfbf9;
+      }
+
+      .prompt-head span {
+        color: var(--muted);
+        font-size: 0.9rem;
+      }
+
+      pre {
+        margin: 0;
+        padding: 16px;
+        overflow: auto;
+        background: var(--code);
+        font-size: 0.9rem;
+        line-height: 1.45;
+        white-space: pre-wrap;
+      }
+
+      code {
+        font-family:
+          "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      }
+
+      .decision-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.95rem;
+      }
+
+      .decision-table th,
+      .decision-table td {
+        padding: 10px 8px;
+        text-align: left;
+        border-bottom: 1px solid var(--line);
+        vertical-align: top;
+      }
+
+      .decision-table th {
+        color: var(--muted);
+        font-weight: 700;
+      }
+
+      .footer-note {
+        margin-top: 20px;
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+
+      @media (max-width: 900px) {
+        .top-grid,
+        .phase {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <h1>Battleships Agent Phase Board</h1>
+        <p class="lede">
+          Use this as the project cockpit during local preparation and the official
+          3-hour window. Keep the core loop simple: build, run, log, analyze, tune,
+          repeat.
+        </p>
+      </header>
+
+      <section class="top-grid" aria-label="Operating rules and conversation rules">
+        <article class="panel">
+          <h2>Operating Rules</h2>
+          <ul class="rule-list">
+            <li>Do not start official GitHub OAuth or challenge flow until the local agent is ready.</li>
+            <li>Baseline success means a full 15-game Attempt without disqualification.</li>
+            <li>Every request needs a fresh JWT with the full capability list.</li>
+            <li>Never repeat a shot, shoot off-board, or submit an invalid fleet.</li>
+            <li>Make every strategy change measurable through telemetry.</li>
+          </ul>
+        </article>
+
+        <article class="panel">
+          <h2>When To Start A New Chat</h2>
+          <table class="decision-table">
+            <thead>
+              <tr>
+                <th>Situation</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Same implementation thread, same repo state</td>
+                <td>Stay in the same chat.</td>
+              </tr>
+              <tr>
+                <td>After baseline is complete and you want an independent review</td>
+                <td>Start a new chat with the review prompt.</td>
+              </tr>
+              <tr>
+                <td>After an Attempt finishes and logs exist</td>
+                <td>Start a focused analysis chat or sub-agent task.</td>
+              </tr>
+              <tr>
+                <td>Context becomes noisy or goals changed</td>
+                <td>Start a new chat and paste the handoff prompt.</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+
+      <section class="phase-grid" aria-label="Phases">
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge active">Phase 0</span>
+            <strong>Local Prep</strong>
+            <span class="time">Before timer</span>
+          </div>
+          <div class="phase-body">
+            <h2>Document decisions and scaffold the repo</h2>
+            <ul>
+              <li>Create PRD, README, ignore rules, and project structure.</li>
+              <li>Fetch OpenAPI schema if needed, but do not authenticate yet.</li>
+              <li>Implement enough local code that the first official run is not exploratory.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 0 checklist">
+              <label><input type="checkbox" checked /> PRD exists</label>
+              <label><input type="checkbox" checked /> README exists</label>
+              <label><input type="checkbox" checked /> Sensitive files ignored</label>
+              <label><input type="checkbox" /> TypeScript scaffold exists</label>
+              <label><input type="checkbox" /> Scripts planned</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Docs are understood and no official timer/auth flow has started.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>Repo has a clear plan, no sensitive files, and a ready implementation path.</span>
+            </div>
+          </aside>
+        </article>
+
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge todo">Phase 1</span>
+            <strong>Baseline Agent</strong>
+            <span class="time">0:00-0:50</span>
+          </div>
+          <div class="phase-body">
+            <h2>Make the agent complete one Attempt</h2>
+            <ul>
+              <li>Implement Agent Auth persistence and REST client.</li>
+              <li>Implement legal random placement and safe shot selection.</li>
+              <li>Handle all `responseType` variants.</li>
+              <li>Save request IDs and terminal result.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 1 checklist">
+              <label><input type="checkbox" /> Persistent auth storage</label>
+              <label><input type="checkbox" /> Fresh JWT per request</label>
+              <label><input type="checkbox" /> Legal fleet generator</label>
+              <label><input type="checkbox" /> Safe non-repeating shots</label>
+              <label><input type="checkbox" /> Full responseType loop</label>
+              <label><input type="checkbox" /> Telemetry written</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Project scaffold exists and constants/endpoints are encoded.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>One full Attempt reaches `ATTEMPT_COMPLETED`, or any failure is logged clearly enough to fix.</span>
+            </div>
+            <div class="gate">
+              <strong>Test gate</strong>
+              <span>Unit tests for placement and shot validation pass.</span>
+            </div>
+          </aside>
+        </article>
+
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge todo">Phase 2</span>
+            <strong>Better Shooting</strong>
+            <span class="time">0:50-1:30</span>
+          </div>
+          <div class="phase-body">
+            <h2>Replace simple hunt/target with probability density</h2>
+            <ul>
+              <li>Enumerate possible remaining ship placements.</li>
+              <li>Prioritize cells that can complete unresolved hits.</li>
+              <li>Use parity only as a fallback or tie-breaker.</li>
+              <li>Keep hard validation before every submitted shot.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 2 checklist">
+              <label><input type="checkbox" /> Enumerate candidate ship placements</label>
+              <label><input type="checkbox" /> Exclude misses</label>
+              <label><input type="checkbox" /> Prioritize unresolved hits</label>
+              <label><input type="checkbox" /> Directional targeting for aligned hits</label>
+              <label><input type="checkbox" /> Legal fallback on crowded board</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Baseline loop is stable enough to complete or debug a real Attempt.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>Shot selection is explainable, logged, and never returns illegal cells.</span>
+            </div>
+            <div class="gate">
+              <strong>Test gate</strong>
+              <span>Shooting unit tests cover hits, aligned hits, misses, and fallback.</span>
+            </div>
+          </aside>
+        </article>
+
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge todo">Phase 3</span>
+            <strong>Adaptive Placement</strong>
+            <span class="time">1:30-2:05</span>
+          </div>
+          <div class="phase-body">
+            <h2>Use opponent shot telemetry to place safer fleets</h2>
+            <ul>
+              <li>Build heatmaps from opponent shots.</li>
+              <li>Generate many legal candidate fleets.</li>
+              <li>Score candidates by heat exposure, clustering, orientation, and randomness.</li>
+              <li>Persist updated config after analysis.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 3 checklist">
+              <label><input type="checkbox" /> Build heatmap from telemetry</label>
+              <label><input type="checkbox" /> Score fleet heat exposure</label>
+              <label><input type="checkbox" /> Penalize clustering</label>
+              <label><input type="checkbox" /> Balance orientation</label>
+              <label><input type="checkbox" /> Save updated config</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Telemetry exists, or fixtures can simulate opponent shots.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>Prior Attempt data changes future placement decisions.</span>
+            </div>
+            <div class="gate">
+              <strong>Test gate</strong>
+              <span>Heatmap/config tests pass and placement legality tests still pass.</span>
+            </div>
+          </aside>
+        </article>
+
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge todo">Phase 4</span>
+            <strong>Run Loop</strong>
+            <span class="time">2:05-2:35</span>
+          </div>
+          <div class="phase-body">
+            <h2>Run Attempts and compare outcomes</h2>
+            <ul>
+              <li>Run `npm run play` and `npm run analyze` repeatedly.</li>
+              <li>Record final score, wins, losses, and worst opponents.</li>
+              <li>Only keep changes that improve measured behavior or reduce risk.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 4 checklist">
+              <label><input type="checkbox" /> Attempt result saved</label>
+              <label><input type="checkbox" /> Analysis summary produced</label>
+              <label><input type="checkbox" /> Weak opponents identified</label>
+              <label><input type="checkbox" /> Config updated safely</label>
+              <label><input type="checkbox" /> Results compared</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Agent completes Attempts and analyzer can read telemetry.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>Two Attempts are comparable, or one complete Attempt is documented if time is short.</span>
+            </div>
+            <div class="gate">
+              <strong>Test gate</strong>
+              <span>Analyzer handles the latest telemetry without crashing.</span>
+            </div>
+          </aside>
+        </article>
+
+        <article class="phase">
+          <div class="phase-meta">
+            <span class="badge warn">Phase 5</span>
+            <strong>Submit</strong>
+            <span class="time">2:35-3:00</span>
+          </div>
+          <div class="phase-body">
+            <h2>Package the work for evaluation</h2>
+            <ul>
+              <li>Run typecheck/tests.</li>
+              <li>Update README with real commands and strategy summary.</li>
+              <li>Commit in coherent increments.</li>
+              <li>Push to GitHub and share with the required evaluator.</li>
+            </ul>
+            <div class="checklist" aria-label="Phase 5 checklist">
+              <label><input type="checkbox" /> Typecheck passes</label>
+              <label><input type="checkbox" /> Tests pass</label>
+              <label><input type="checkbox" /> README reflects real commands</label>
+              <label><input type="checkbox" /> Credentials/logs not committed</label>
+              <label><input type="checkbox" /> Repo pushed</label>
+            </div>
+          </div>
+          <aside class="phase-side">
+            <div class="gate">
+              <strong>Enter when</strong>
+              <span>Agent is stable enough to submit and no credential leak is present.</span>
+            </div>
+            <div class="gate">
+              <strong>Exit when</strong>
+              <span>The repository is pushed and can be understood by a reviewer.</span>
+            </div>
+            <div class="gate">
+              <strong>Test gate</strong>
+              <span>Run typecheck, tests, and final smoke/full Attempt if time permits.</span>
+            </div>
+          </aside>
+        </article>
+      </section>
+
+      <section class="top-grid" aria-label="Test plan">
+        <article class="panel">
+          <h2>Tests Worth Doing</h2>
+          <ul class="compact-list">
+            <li>Unit: placement legality, shot legality, probability targeting, config load/save.</li>
+            <li>Mocked integration: responseType loop, fresh JWT per request, empty-body headers.</li>
+            <li>Real server: health check, rules call after approval, one full Attempt.</li>
+          </ul>
+        </article>
+        <article class="panel">
+          <h2>Tests To Skip</h2>
+          <ul class="compact-list">
+            <li>Browser/UI tests.</li>
+            <li>Snapshot tests for logs.</li>
+            <li>Large simulation framework before baseline works.</li>
+            <li>Repeated live-server integration tests before official approval.</li>
+          </ul>
+        </article>
+      </section>
+
+      <section class="prompt-bank" aria-label="Prompt bank">
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 0: Continue From PRD</h2>
+            <span>Use at the start of implementation</span>
+          </div>
+          <pre><code>Read docs/PRD.md and implement the next highest-priority step for the Battleships agent. Do not start official OAuth or Agent Auth approval. Keep changes scoped, update README only when facts are true, and verify with local typecheck/tests where possible.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 1: Build Baseline</h2>
+            <span>Use for Phase 1</span>
+          </div>
+          <pre><code>Implement the baseline TypeScript Battleships agent described in docs/PRD.md: persistent Agent Auth storage, fresh JWT per request, typed REST client, legal random placement, safe non-repeating shooting, responseType-driven game loop, and telemetry. Do not optimize strategy yet. First priority is avoiding disqualification and completing one full Attempt.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 2: Disqualification Review</h2>
+            <span>Use in a new chat or sub-agent after baseline code exists</span>
+          </div>
+          <pre><code>Review this Battleships agent codebase for disqualification risks. Focus on repeated shots, off-board shots, invalid placements, stale JWT reuse, wrong Content-Type on empty requests, incomplete responseType handling, and timeout risk. Return findings first with file/line references and concrete fixes.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 3: Improve Shooting</h2>
+            <span>Use for Phase 2</span>
+          </div>
+          <pre><code>Upgrade src/shooting.ts from basic hunt/target to probability-density targeting. Enumerate legal remaining ship placements, exclude misses, prioritize unresolved hits, score candidate cells, and preserve hard validation against repeated or off-board shots. Add focused tests for shot choice and edge cases.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 4: Adaptive Placement</h2>
+            <span>Use for Phase 3</span>
+          </div>
+          <pre><code>Implement adaptive placement from telemetry. Read prior opponent shots, build a heatmap, generate many legal candidate fleets, score by heat exposure plus anti-clustering and orientation balance, then persist updated placement weights in data/config.json. Keep randomization so placement does not become fixed.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 5: Analyze Attempt</h2>
+            <span>Use after each completed Attempt</span>
+          </div>
+          <pre><code>Analyze the latest telemetry in data/attempts. Summarize finalScore, wins/losses, hit differential, weakest opponents, wasted shots, opponent shot heatmap, and whether config changes improved results. Recommend exactly one or two next strategy changes that are measurable and safe.</code></pre>
+        </article>
+
+        <article class="prompt">
+          <div class="prompt-head">
+            <h2>Prompt 6: Handoff To New Chat</h2>
+            <span>Use when context gets long</span>
+          </div>
+          <pre><code>We are building a StarSling Battleships agent in /Users/wangruiqi/Projects/Battleships_Agent. Read README.md, docs/PRD.md, and docs/progress.html first. Continue from the current repo state. Do not revert user changes. Do not start official OAuth unless explicitly asked. Prioritize completing the responseType-driven agent loop, avoiding disqualification, telemetry, and closed-loop tuning.</code></pre>
+        </article>
+      </section>
+
+      <p class="footer-note">
+        Keep this page factual. When a Phase finishes, update the badge/status and add the real
+        score or verification command to README rather than relying on memory.
+      </p>
+    </main>
+  </body>
+</html>

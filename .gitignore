@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.agent-auth.json
+agent-id.txt
+data/attempts/*.jsonl
+data/attempts/*.json
+npm-debug.log*
+.DS_Store

@@ -1,0 +1,12 @@
+{
+  "placement": {
+    "candidateCount": 200,
+    "heatmapWeight": 1,
+    "clusterWeight": 0.15,
+    "orientationBalanceWeight": 0.2
+  },
+  "shooting": {
+    "useProbabilityDensity": false,
+    "huntParity": 2
+  }
+}
